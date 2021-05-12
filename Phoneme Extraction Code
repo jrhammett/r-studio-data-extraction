@@ -1,0 +1,117 @@
+writeInfoLine: "Extracting formants..."
+
+# Extract the names of the Praat objects
+
+thisSound$ = selected$("Sound")
+
+thisTextGrid$ = selected$("TextGrid")
+
+# Extract the number of intervals in the phoneme tier
+
+select TextGrid 'thisTextGrid$'
+
+numberOfPhonemes = Get number of intervals: 1  
+
+appendInfoLine: "There are ", numberOfPhonemes, " intervals."
+
+# Create the Formant Object
+
+select Sound 'thisSound$'
+
+To Formant (burg)... 0 5 5500 0.025 50
+
+# Create the output file and write the first line.
+
+outputPath$ = "C:\Users\Joseph\Desktop\formants.csv"
+
+writeFileLine: "'outputPath$'", "vowel,word,time,F1,F2"
+
+#create counter
+
+vowelCounter = 0
+
+# Loop through each interval on the phoneme tier.
+
+for thisInterval from 1 to numberOfPhonemes
+
+    # Get the label of the interval
+
+    select TextGrid 'thisTextGrid$'
+
+    thisPhoneme$ = Get label of interval: 1, thisInterval
+
+    
+
+    #check if vowel we are searching for
+
+    #this is where you specify the phoneme you're looking for
+
+    if thisPhoneme$ = "AE1" 
+
+	#printLabel
+
+	appendInfo: thisPhoneme$, ", "
+
+    	#Find duration
+
+    	thisPhonemeStartTime = Get start point: 1, thisInterval
+
+    	thisPhonemeEndTime   = Get end point:   1, thisInterval
+
+	thisPhonemeDuration = thisPhonemeEndTime - thisPhonemeStartTime
+
+	#print duration
+
+	appendInfo: "duration: ", thisPhonemeDuration, ", "
+
+	#find one third point
+
+	oneThird = thisPhonemeDuration / 3
+
+	
+
+	#find midpoint of first third
+
+	oneThirdHalf = oneThird / 2
+
+	nucleusMidpoint = thisPhonemeStartTime + oneThirdHalf
+
+	#print midpoint of first third
+
+	appendInfoLine: "nucleus midpoint: ", nucleusMidpoint
+
+	#find word that vowel belongs to
+
+	vowelint = Get interval at time... 2 nucleusMidpoint
+
+	vowellab$ = Get label of interval... 2 vowelint
+
+	# Extract formant measurements
+
+    	select Formant 'thisSound$'
+
+    	f1 = Get value at time... 1 nucleusMidpoint Hertz Linear
+
+    	f2 = Get value at time... 2 nucleusMidpoint Hertz Linear
+
+    	# Save to a spreadsheet
+
+    	appendFileLine: "'outputPath$'", 
+
+                   ...thisPhoneme$, ",",
+
+		   ...vowellab$, ",",
+
+                   ...nucleusMidpoint, ",",
+
+                   ...f1, ",", 
+
+                   ...f2
+
+    endif
+
+    
+
+endfor
+
+appendInfoLine: newline$, newline$, "Whoo-hoo! It didn't crash!"
